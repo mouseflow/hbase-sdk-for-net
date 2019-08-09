@@ -28,6 +28,7 @@ namespace Microsoft.HBase.Client
     using ProtoBuf;
     using System.Globalization;
     using System.Collections.Generic;
+    using Microsoft.IO;
 
     /// <summary>
     /// A C# connector to HBase. 
@@ -50,6 +51,7 @@ namespace Microsoft.HBase.Client
     {
         private IWebRequester _requester;
         private readonly RequestOptions _globalRequestOptions;
+        private static readonly RecyclableMemoryStreamManager RecyclableMemoryStreamManager;
 
         private const string CheckAndPutQuery = "check=put";
         private const string CheckAndDeleteQuery = "check=delete";
@@ -59,6 +61,11 @@ namespace Microsoft.HBase.Client
         /// Used to detect redundant calls to <see cref="IDisposable.Dispose"/>.
         /// </summary>
         private bool _disposed;
+
+        static HBaseClient()
+        {
+            RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HBaseClient"/> class.
@@ -513,7 +520,7 @@ namespace Microsoft.HBase.Client
                 short length = (short)(((slengthBytes[0] & 0xFF) << 8) | (slengthBytes[1] & 0xFF));
                 byte[] cellSet = new byte[length];
                 int byteread = stream.Read(cellSet, 0, length);
-                CellSet sc = Serializer.Deserialize<CellSet>(new MemoryStream(cellSet, 0, byteread));
+                CellSet sc = Serializer.Deserialize<CellSet>(RecyclableMemoryStreamManager.GetStream("ReadProtobufStream", cellSet, 0, byteread));
                 cells.Add(sc);
             }
 
@@ -626,7 +633,7 @@ namespace Microsoft.HBase.Client
            TReq request,
            RequestOptions options) where TReq : class
         {
-            using (var input = new MemoryStream(options.SerializationBufferSize))
+            using (var input = RecyclableMemoryStreamManager.GetStream("ExecuteMethodAsync", options.SerializationBufferSize))
             {
                 if (request != null)
                 {
