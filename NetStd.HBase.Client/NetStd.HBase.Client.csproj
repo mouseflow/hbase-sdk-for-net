@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Microsoft.HBase.Client</AssemblyName>
+    <RootNamespace>Microsoft.HBase.Client</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\schemas\ProtoBuf\Generated\*.cs">
+      <Link>ProtoBufGenerated\%(FileName)</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EnterpriseLibrary.TransientFaultHandling.NetCore" Version="6.0.1312" />
+    <PackageReference Include="protobuf-net" Version="3.0.101" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+</Project>
